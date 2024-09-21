@@ -55,6 +55,17 @@ class GitHubSentinel(Cmd):
         print("退出程序...")
         return True
 
+    def do_help(self, arg):
+        """显示帮助信息: help"""
+        print("""
+可用命令:
+- add <repository>: 添加新的仓库订阅
+- remove <repository>: 移除已有的仓库订阅
+- list: 列出当前所有订阅的仓库
+- update: 立即获取并显示所有订阅仓库的最新更新
+- exit: 退出程序
+""")
+
     def fetch_and_print_updates(self):
         """后台线程定期检查更新"""
         while True:
@@ -69,4 +80,6 @@ if __name__ == '__main__':
     threading.Thread(target=GitHubSentinel().fetch_and_print_updates, daemon=True).start()
 
     # 启动命令行交互
-    GitHubSentinel().cmdloop()
+    sentinel = GitHubSentinel()
+    sentinel.do_help("")  # 打印帮助信息
+    sentinel.cmdloop()  # 进入命令循环
