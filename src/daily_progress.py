@@ -1,44 +1,20 @@
-from github import Github
+from src.report_generator import ReportGenerator
 from datetime import datetime
-import os
+
 
 
 class DailyProgress:
     def __init__(self, token, subscriptions):
-        self.github = Github(token)
+        self.token = token
         self.subscriptions = subscriptions
+        self.report_generator = ReportGenerator()  # 初始化 ReportGenerator 实例
 
     def generate_daily_report(self):
-        date_str = datetime.now().strftime("%Y-%m-%d")
-        report_lines = []
+        date_str = datetime.now().strftime('%Y-%m-%d')
+        filename = f'daily_progress_report_{date_str}.md'
+        # 调用 export_daily_progress 方法来生成报告
+        if not self.subscriptions:  # 检查是否有订阅
+            return "没有订阅仓库，无法生成日报。"
 
-        for repo in self.subscriptions:
-            repository = self.github.get_repo(repo)
-            report_lines.append(f"# {repo} - {date_str}\n")
-
-            # 获取 issues 列表
-            report_lines.append("## Issues\n")
-            issues = repository.get_issues(state='open')
-            if issues.totalCount == 0:
-                report_lines.append("没有开放的 issues。\n")
-            else:
-                for issue in issues:
-                    report_lines.append(f"- [{issue.title}]({issue.html_url}) - 提交者: {issue.user.login}\n")
-
-            # 获取 pull requests 列表
-            report_lines.append("\n## Pull Requests\n")
-            pulls = repository.get_pulls(state='open')
-            if pulls.totalCount == 0:
-                report_lines.append("没有开放的 pull requests。\n")
-            else:
-                for pr in pulls:
-                    report_lines.append(f"- [{pr.title}]({pr.html_url}) - 提交者: {pr.user.login}\n")
-
-            report_lines.append("\n---\n")
-
-        # 生成 markdown 文件
-        report_filename = f"daily_report_{date_str}.md"
-        with open(report_filename, "w", encoding="utf-8") as f:
-            f.write("\n".join(report_lines))
-
-        print(f"已生成报告：{report_filename}")
+        self.report_generator.export_daily_progress(self.subscriptions, filename)
+        return filename

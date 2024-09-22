@@ -89,7 +89,7 @@ class LLMClient:
             top_p=0.7,
             temperature=0.9
         )
-        summary = completion.choices[0].message
+        summary = completion.choices[0].message.content
         return summary
 
     def _summarize_with_deepseek(self, content):
