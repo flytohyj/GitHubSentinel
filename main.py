@@ -1,7 +1,6 @@
 import gradio as gr
 from src.github_client import GitHubClient
 from src.subscription_manager import SubscriptionManager
-from src.update_fetcher import UpdateFetcher
 from src.llm_client import LLMClient
 from config import GITHUB_TOKEN, OPENAI_API_KEY, LLM_MODEL_TYPE
 from datetime import datetime
@@ -13,7 +12,6 @@ logger.info("Starting the GitHub Sentinel application...")
 # 用于全局订阅管理器、报告生成器、每日进展和 LLM 客户端
 subscription_manager = SubscriptionManager()
 gitHub_client = GitHubClient(GITHUB_TOKEN)
-update_fetcher = UpdateFetcher(gitHub_client)
 llm_client = LLMClient(OPENAI_API_KEY, model_type=LLM_MODEL_TYPE)
 report_generator = ReportGenerator(llm_client)
 
