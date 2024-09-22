@@ -1,61 +1,73 @@
+import os
+from datetime import date, timedelta
+from src.logger import logger  # 引入logger
+
 class ReportGenerator:
-    def generate_report(self, updates):
-        report = ""
-        for repo, data in updates.items():
-            report += f"### Repository: {repo}\n\n"
+    def __init__(self, llm):
+        self.llm = llm
 
-            if not data:  # 检查数据是否为空
-                report += "#### No data found for this repository.\n"
-                continue
+    def export_daily_progress(self, repo, updates):
+        repo_dir = os.path.join('daily_progress', repo.replace("/", "_"))
+        os.makedirs(repo_dir, exist_ok=True)
+        
+        file_path = os.path.join(repo_dir, f'{date.today()}.md')
+        with open(file_path, 'w') as file:
+            file.write(f"# Daily Progress for {repo} ({date.today()})\n\n")
+            file.write("\n## Issues\n")
+            for issue in updates['issues']:
+                file.write(f"- {issue['title']} #{issue['number']}\n")
+            file.write("\n## Pull Requests\n")
+            for pr in updates['pull_requests']:
+                file.write(f"- {pr['title']} #{pr['number']}\n")
+        return file_path
 
-            # Ensure 'events' and 'latest_release' are present
-            events = data.get('events', [])
-            latest_release = data.get('latest_release', None)
+    def export_progress_by_date_range(self, repo, updates, days):
+        repo_dir = os.path.join('daily_progress', repo.replace("/", "_"))
+        os.makedirs(repo_dir, exist_ok=True)
 
-            if events:
-                report += "#### Latest Events:\n"
-                for event in events:
-                    report += f"- {event['type']} at {event['created_at']}\n"
-            else:
-                report += "#### No events found.\n"
+        today = date.today()
+        since = today - timedelta(days=days)
+        
+        # Updated filename with date range
+        date_str = f"{since}_to_{today}"
+        file_path = os.path.join(repo_dir, f'{date_str}.md')
+        
+        with open(file_path, 'w') as file:
+            file.write(f"# Progress for {repo} ({since} to {today})\n\n")
+            file.write("\n## Issues Closed in the Last {days} Days\n")
+            for issue in updates['issues']:
+                file.write(f"- {issue['title']} #{issue['number']}\n")
+            file.write("\n## Pull Requests Merged in the Last {days} Days\n")
+            for pr in updates['pull_requests']:
+                file.write(f"- {pr['title']} #{pr['number']}\n")
+        
+        logger.info(f"Exported time-range progress to {file_path}")
+        return file_path
 
-            if latest_release:
-                report += f"#### Latest Release: {latest_release['tag_name']} - {latest_release['published_at']}\n"
-                report += f"#### Release URL: [Link](https://github.com/{repo}/releases/tag/{latest_release['tag_name']})\n\n"
-            else:
-                report += "#### No releases found.\n"
+    def generate_daily_report(self, markdown_file_path):
+        with open(markdown_file_path, 'r') as file:
+            markdown_content = file.read()
 
-        return report
+        report = self.llm.summarize_report(markdown_content)
 
-    def export_daily_progress(self, subscriptions, filename):
-        if not subscriptions:  # 检查 subscriptions 是否存在
-            print("没有可用的订阅，无法导出日报。")
-            return  # 提前结束，避免后续错误
+        report_file_path = os.path.splitext(markdown_file_path)[0] + "_report.md"
+        with open(report_file_path, 'w+') as report_file:
+            report_file.write(report)
 
-        updates = {}
-        for repo in subscriptions:
-            try:
-                updates[repo] = {
-                    'events': self.fetch_events(repo),  # 自定义函数来获取事件
-                    'latest_release': self.get_latest_release(repo)  # 假设有一个函数来获取最新发布
-                }
-            except Exception as e:
-                print(f"Error fetching updates for {repo}: {e}")
-                updates[repo] = None  # 确保即使出错也不会让整个循环崩溃
+        logger.info(f"Generated report saved to {report_file_path}")
+        
+        return report, report_file_path
 
-        # 生成报告
-        report = self.generate_report(updates)
+    def generate_report_by_date_range(self, markdown_file_path, days):
+        with open(markdown_file_path, 'r') as file:
+            markdown_content = file.read()
 
-        # 导出为 Markdown 文件
-        with open(filename, 'w', encoding='utf-8') as f:
-            f.write(report)
+        report = self.llm.summarize_report(markdown_content)
 
-        print(f"Exported daily progress to {filename}")
+        report_file_path = os.path.splitext(markdown_file_path)[0] + f"_report.md"
+        with open(report_file_path, 'w+') as report_file:
+            report_file.write(report)
 
-    def fetch_events(self, repo):
-        # 这个函数需要实现，返回 repo 的事件数据
-        pass
-
-    def get_latest_release(self, repo):
-        # 这个函数需要实现，返回 repo 的最新版本信息
-        pass
+        logger.info(f"Generated report saved to {report_file_path}")
+        
+        return report, report_file_path

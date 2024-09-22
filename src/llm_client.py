@@ -6,12 +6,9 @@ class LLMClient:
     def __init__(self, api_key, model_type='openai'):
         self.api_key = api_key
         self.model_type = model_type
-        self.max_length = 5000  # 设置最大输入长度
+        self.max_length = 6000  # 设置最大输入长度
 
-    def summarize_report(self, markdown_file):
-        with open(markdown_file, "r", encoding="utf-8") as f:
-            content = f.read()
-
+    def summarize_report(self, content):
         # 检查内容长度，并根据模型类型调用相应的方法
         if len(content) > self.max_length:
             parts = self._split_content(content)
@@ -67,7 +64,7 @@ class LLMClient:
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "你是一个优秀的项目总结助手。"},
-                {"role": "user", "content": f"请根据以下内容生成一个项目每日报告:\n\n{content}"}
+                {"role": "user", "content": f"请根据以下内容生成一个项目每日报告,用中文回复:\n\n{content}"}
             ]
         )
 
@@ -84,7 +81,7 @@ class LLMClient:
             model="glm-4-flash",
             messages=[
                 {"role": "system", "content": "你是一个优秀的项目总结助手。"},
-                {"role": "user", "content": f"请根据以下内容生成一个项目每日报告:\n\n{content}"}
+                {"role": "user", "content": f"请根据以下内容生成一个项目每日报告,用中文回复:\n\n{content}"}
             ],
             top_p=0.7,
             temperature=0.9
@@ -102,7 +99,7 @@ class LLMClient:
             model="deepseek-chat",
             messages=[
                 {"role": "system", "content": "你是一个优秀的项目总结助手。"},
-                {"role": "user", "content": f"请根据以下内容生成一个项目每日报告:\n\n{content}"},
+                {"role": "user", "content": f"请根据以下内容生成一个项目每日报告,用中文回复:\n\n{content}"},
             ],
             stream=False
         )
@@ -120,7 +117,7 @@ class LLMClient:
             model="qwen-turbo",
             messages=[
                 {'role': 'system', 'content': '你是一个优秀的项目总结助手。'},
-                {'role': 'user', 'content': f"请根据以下内容生成一个项目每日报告:\n\n{content}"}
+                {'role': 'user', 'content': f"请根据以下内容生成一个项目每日报告,用中文回复:\n\n{content}"}
             ]
         )
 
