@@ -1,5 +1,8 @@
 import gradio as gr
+import requests
+from bs4 import BeautifulSoup
 from src.github_client import GitHubClient
+from src.hacker_client import HackerClient
 from src.subscription_manager import SubscriptionManager
 from src.llm_client import LLMClient
 from config import GITHUB_TOKEN, OPENAI_API_KEY, LLM_MODEL_TYPE
@@ -14,6 +17,7 @@ subscription_manager = SubscriptionManager()
 gitHub_client = GitHubClient(GITHUB_TOKEN)
 llm_client = LLMClient(OPENAI_API_KEY, model_type=LLM_MODEL_TYPE)
 report_generator = ReportGenerator(llm_client)
+hacker_client =HackerClient()
 
 
 def add_subscription(repo):
@@ -115,6 +119,15 @@ def generate_daily_summary():
     return f"已生成总结报告：{reports}"
 
 
+def fetch_hackernews_summary():
+    news = hacker_client.fetch_hackernews_top_stories()
+    print(news)
+    file_path = report_generator.export_daily_news(news)
+    report, markdown_file = report_generator.generate_daily_report(file_path)  # 生成报告
+    logger.info(f"Hacker news summary report generated: {report}")
+    return f"已生成Hacker总结报告：{report}"
+
+
 # Gradio界面设计
 with gr.Blocks() as demo:
     gr.Markdown("# GitHub Sentinel")
@@ -145,6 +158,9 @@ with gr.Blocks() as demo:
 
     daily_summary_button = gr.Button("生成今日进展摘要")
     daily_summary_button.click(generate_daily_summary, outputs=output_text)
+
+    fetch_hackernews_button = gr.Button("获取Hack 新闻")
+    fetch_hackernews_button.click(fetch_hackernews_summary, outputs=output_text)
 
 # 启动 Gradio 应用
 if __name__ == '__main__':

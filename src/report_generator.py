@@ -71,3 +71,31 @@ class ReportGenerator:
         logger.info(f"Generated report saved to {report_file_path}")
         
         return report, report_file_path
+
+    def export_daily_news(self, updates):
+        repo_dir = os.path.join('daily_news')
+        os.makedirs(repo_dir, exist_ok=True)
+
+        file_path = os.path.join(repo_dir, f'{date.today()}.md')
+        with open(file_path, 'w') as file:
+            if updates:
+                for idx, story in enumerate(updates, start=1):
+                    file.write(f"{idx}. {updates['title']}")
+                    file.write(f"   Link: {updates['link']}")
+            else:
+                file.write("No stories found.")
+        return file_path
+
+    def generate_daily_news(self, markdown_file_path):
+        with open(markdown_file_path, 'r') as file:
+            markdown_content = file.read()
+
+        report = self.llm.summarize_report(markdown_content)
+
+        report_file_path = os.path.splitext(markdown_file_path)[0] + "_report.md"
+        with open(report_file_path, 'w+') as report_file:
+            report_file.write(report)
+
+        logger.info(f"Generated report saved to {report_file_path}")
+
+        return report, report_file_path
