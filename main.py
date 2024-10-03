@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 from src.github_client import GitHubClient
 from src.hacker_client import HackerClient
+from src.ai_client import AiClient
 from src.subscription_manager import SubscriptionManager
 from src.llm_client import LLMClient
 from config import GITHUB_TOKEN, OPENAI_API_KEY, LLM_MODEL_TYPE
@@ -18,6 +19,7 @@ gitHub_client = GitHubClient(GITHUB_TOKEN)
 llm_client = LLMClient(OPENAI_API_KEY, model_type=LLM_MODEL_TYPE)
 report_generator = ReportGenerator(llm_client)
 hacker_client =HackerClient()
+ai_news_client =AiClient()
 
 
 def add_subscription(repo):
@@ -127,6 +129,14 @@ def fetch_hackernews_summary():
     logger.info(f"Hacker news summary report generated: {report}")
     return f"已生成Hacker总结报告：{report}"
 
+def fetch_ai_news_summary():
+    news = ai_news_client.fetch_ai_news_top_stories()
+    print(news)
+    file_path = report_generator.export_daily_ai_news(news)
+    report, markdown_file = report_generator.generate_daily_report(file_path)  # 生成报告
+    logger.info(f"Hacker news summary report generated: {report}")
+    return f"已生成Hacker总结报告：{report}"
+
 
 # Gradio界面设计
 with gr.Blocks() as demo:
@@ -161,6 +171,9 @@ with gr.Blocks() as demo:
 
     fetch_hackernews_button = gr.Button("获取Hack 新闻")
     fetch_hackernews_button.click(fetch_hackernews_summary, outputs=output_text)
+
+    fetch_ai_news_button = gr.Button("获取AI新闻")
+    fetch_ai_news_button.click(fetch_ai_news_summary, outputs=output_text)
 
 # 启动 Gradio 应用
 if __name__ == '__main__':

@@ -80,8 +80,8 @@ class ReportGenerator:
         with open(file_path, 'w') as file:
             if updates:
                 for idx, story in enumerate(updates, start=1):
-                    file.write(f"{idx}. {updates['title']}")
-                    file.write(f"   Link: {updates['link']}")
+                    file.write(f"{idx}. {story['title']}")
+                    file.write(f"   Link: {story['link']}")
             else:
                 file.write("No stories found.")
         return file_path
@@ -99,3 +99,17 @@ class ReportGenerator:
         logger.info(f"Generated report saved to {report_file_path}")
 
         return report, report_file_path
+
+    def export_daily_ai_news(self, updates):
+        repo_dir = os.path.join('ai_news')
+        os.makedirs(repo_dir, exist_ok=True)
+
+        file_path = os.path.join(repo_dir, f'{date.today()}.md')
+        with open(file_path, 'w') as file:
+            if updates:
+                for idx, story in enumerate(updates, start=1):
+                    file.write(f"{idx}. {story['title']}")
+                    file.write(f"   Link: {story['link']}")
+            else:
+                file.write("No stories found.")
+        return file_path
